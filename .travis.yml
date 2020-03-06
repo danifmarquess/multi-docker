@@ -1,0 +1,22 @@
+sudo : required
+services:
+    - docker
+   
+before_install:
+    - docker build -t danifmarquess/react-test -f ./client/Dockerfile.dev ./client
+    
+script:
+    - docker run danifmarquess/react-test npm test -- --coverage
+    
+after_sucess:
+    - docker build -t danifmarquess/multi-client ./client
+    - docker build -t danifmarquess/multi-nginx ./nginx
+    - docker build -t danifmarquess/multi-server ./server    
+    - docker build -t danifmarquess/multi-worker ./worker
+# docker login
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# Take those images and push them to docker hub
+    - docker push danifmarquess/multi-client 
+    - docker push danifmarquess/multi-nginx
+    - docker push danifmarquess/multi-server
+    - docker push danifmarquess/multi-worker
